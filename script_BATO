@@ -1,26 +1,16 @@
 -- ============================================
 -- سكربت "الظل الأسود" – Black Shadow v3.0
--- جميع الحقوق محفوظة للمطورين:
---   المطور الرئيسي: alfifi_27
---   المطور المشارك: 3BDO124235
+-- المطورين: alfifi_27 & 3BDO124235
+-- إصدار دلتا – كامل ومتكامل
 -- ============================================
 
 local player = game.Players.LocalPlayer
+if not player then return end
+
+-- انتظر تحميل الشخصية
 local character = player.Character or player.CharacterAdded:Wait()
-local mouse = player:GetMouse()
-local uis = game:GetService("UserInputService")
-local rs = game:GetService("RunService")
-local ws = game:GetService("Workspace")
-local replicatedStorage = game:GetService("ReplicatedStorage")
-
--- ===== حسابات المطورين =====
-local developers = {
-    ["alfifi_27"] = true,
-    ["3BDO124235"] = true,
-}
-
--- التحقق من أن اللاعب هو مطور
-local isDeveloper = developers[player.Name] or false
+local humanoid = character:WaitForChild("Humanoid")
+local hrp = character:WaitForChild("HumanoidRootPart")
 
 -- ===== متغيرات التحكم =====
 local aimbotEnabled = false
@@ -28,51 +18,33 @@ local espEnabled = false
 local flyEnabled = false
 local speedEnabled = false
 local jumpEnabled = false
-local autoCollectEnabled = false
+local collectEnabled = false
 local autoAttackEnabled = false
 local noClipEnabled = false
-local antiAFKEnabled = false
 local murdererDetected = nil
 local sheriffDetected = nil
-local selectedPlayer = nil
+local ws = workspace
+local rs = game:GetService("RunService")
+local uis = game:GetService("UserInputService")
+local replicatedStorage = game:GetService("ReplicatedStorage")
 
--- ===== إنشاء الواجهة الأسطورية =====
+-- ===== إنشاء الواجهة =====
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "BlackShadowGUI"
+screenGui.Name = "BlackShadow"
 screenGui.Parent = player.PlayerGui
 
--- الخلفية الرئيسية
+-- الخلفية
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 520, 0, 680)
-frame.Position = UDim2.new(0.5, -260, 0.5, -340)
+frame.Size = UDim2.new(0, 380, 0, 520)
+frame.Position = UDim2.new(0.5, -190, 0.5, -260)
 frame.BackgroundColor3 = Color3.fromRGB(8, 8, 20)
 frame.BorderSizePixel = 0
 frame.BackgroundTransparency = 0.05
 frame.Parent = screenGui
 
--- زوايا مزخرفة
-local function createCorner(parent, color)
-    local corner = Instance.new("Frame")
-    corner.Size = UDim2.new(0, 20, 0, 20)
-    corner.BackgroundColor3 = color
-    corner.BackgroundTransparency = 0.3
-    corner.BorderSizePixel = 0
-    corner.Parent = parent
-    return corner
-end
-
-local tl = createCorner(frame, Color3.fromRGB(220, 50, 50))
-tl.Position = UDim2.new(0, 0, 0, 0)
-local tr = createCorner(frame, Color3.fromRGB(220, 50, 50))
-tr.Position = UDim2.new(1, -20, 0, 0)
-local bl = createCorner(frame, Color3.fromRGB(220, 50, 50))
-bl.Position = UDim2.new(0, 0, 1, -20)
-local br = createCorner(frame, Color3.fromRGB(220, 50, 50))
-br.Position = UDim2.new(1, -20, 1, -20)
-
--- العنوان الرئيسي
+-- العنوان
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 55)
+title.Size = UDim2.new(1, 0, 0, 45)
 title.Position = UDim2.new(0, 0, 0, 5)
 title.BackgroundTransparency = 1
 title.Text = "🔥 Black Shadow v3.0"
@@ -81,18 +53,10 @@ title.TextScaled = true
 title.Font = Enum.Font.GothamBold
 title.Parent = frame
 
--- خط فاصل
-local line = Instance.new("Frame")
-line.Size = UDim2.new(0.9, 0, 0, 2)
-line.Position = UDim2.new(0.05, 0, 0, 62)
-line.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
-line.BackgroundTransparency = 0.5
-line.Parent = frame
-
 -- المطورين
 local devLabel = Instance.new("TextLabel")
 devLabel.Size = UDim2.new(1, 0, 0, 30)
-devLabel.Position = UDim2.new(0, 0, 0, 70)
+devLabel.Position = UDim2.new(0, 0, 0, 50)
 devLabel.BackgroundTransparency = 1
 devLabel.Text = "👑 alfifi_27 & 3BDO124235"
 devLabel.TextColor3 = Color3.fromRGB(180, 180, 220)
@@ -100,10 +64,10 @@ devLabel.TextScaled = true
 devLabel.Font = Enum.Font.Gotham
 devLabel.Parent = frame
 
--- ===== عرض القاتل والشريف =====
+-- القاتل
 local murdererLabel = Instance.new("TextLabel")
 murdererLabel.Size = UDim2.new(1, 0, 0, 25)
-murdererLabel.Position = UDim2.new(0, 0, 0, 105)
+murdererLabel.Position = UDim2.new(0, 0, 0, 85)
 murdererLabel.BackgroundTransparency = 1
 murdererLabel.Text = "🔪 القاتل: لا يوجد"
 murdererLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
@@ -111,9 +75,10 @@ murdererLabel.TextScaled = true
 murdererLabel.Font = Enum.Font.GothamBold
 murdererLabel.Parent = frame
 
+-- الشريف
 local sheriffLabel = Instance.new("TextLabel")
 sheriffLabel.Size = UDim2.new(1, 0, 0, 25)
-sheriffLabel.Position = UDim2.new(0, 0, 0, 135)
+sheriffLabel.Position = UDim2.new(0, 0, 0, 115)
 sheriffLabel.BackgroundTransparency = 1
 sheriffLabel.Text = "⭐ الشريف: لا يوجد"
 sheriffLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
@@ -121,22 +86,12 @@ sheriffLabel.TextScaled = true
 sheriffLabel.Font = Enum.Font.GothamBold
 sheriffLabel.Parent = frame
 
-local idLabel = Instance.new("TextLabel")
-idLabel.Size = UDim2.new(1, 0, 0, 25)
-idLabel.Position = UDim2.new(0, 0, 0, 165)
-idLabel.BackgroundTransparency = 1
-idLabel.Text = "🆔 ID: " .. player.UserId
-idLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
-idLabel.TextScaled = true
-idLabel.Font = Enum.Font.Gotham
-idLabel.Parent = frame
-
--- ===== أزرار الميزات =====
-local function createButton(text, y, color, callback)
+-- ===== دالة إنشاء الأزرار =====
+local function createButton(text, y, callback)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0, 220, 0, 32)
     btn.Position = UDim2.new(0.05, 0, 0, y)
-    btn.BackgroundColor3 = color
+    btn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Text = text
     btn.TextScaled = true
@@ -146,94 +101,58 @@ local function createButton(text, y, color, callback)
     return btn
 end
 
--- أزرار الطيران
-local flyMurdererBtn = createButton("✈ طيران للقاتل", 200, Color3.fromRGB(200, 50, 50), function()
+-- أزرار الطيران للقاتل والشريف
+createButton("✈ طيران للقاتل", 150, function()
     if murdererDetected and murdererDetected.Character then
-        character.HumanoidRootPart.CFrame = murdererDetected.Character.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0)
-        print("✅ تم الطيران للقاتل: " .. murdererDetected.Name)
-    else
-        print("⚠️ لا يوجد قاتل!")
+        hrp.CFrame = murdererDetected.Character.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0)
     end
 end)
 
-local flySheriffBtn = createButton("✈ طيران للشريف", 242, Color3.fromRGB(50, 150, 200), function()
+createButton("✈ طيران للشريف", 190, function()
     if sheriffDetected and sheriffDetected.Character then
-        character.HumanoidRootPart.CFrame = sheriffDetected.Character.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0)
-        print("✅ تم الطيران للشريف: " .. sheriffDetected.Name)
-    else
-        print("⚠️ لا يوجد شريف!")
+        hrp.CFrame = sheriffDetected.Character.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0)
     end
 end)
 
 -- زر ضرب القاتل
-local hitBtn = Instance.new("TextButton")
-hitBtn.Size = UDim2.new(0, 220, 0, 40)
-hitBtn.Position = UDim2.new(0.05, 0, 0, 284)
-hitBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-hitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-hitBtn.Text = "🔪 اضرب القاتل"
-hitBtn.TextScaled = true
-hitBtn.Font = Enum.Font.GothamBold
-hitBtn.Parent = frame
-hitBtn.MouseButton1Click:Connect(function()
+createButton("🔪 اضرب القاتل", 230, function()
     if murdererDetected and murdererDetected.Character then
         local tool = character:FindFirstChildOfClass("Tool")
         if tool then
             tool:Activate()
             wait(0.1)
-            character.HumanoidRootPart.CFrame = CFrame.lookAt(character.HumanoidRootPart.Position, murdererDetected.Character.HumanoidRootPart.Position)
-            replicatedStorage:FindFirstChild("Attack"):FireServer(murdererDetected)
-            print("✅ تم ضرب القاتل: " .. murdererDetected.Name)
+            hrp.CFrame = CFrame.lookAt(hrp.Position, murdererDetected.Character.HumanoidRootPart.Position)
+            local attackEvent = replicatedStorage:FindFirstChild("Attack")
+            if attackEvent then
+                attackEvent:FireServer(murdererDetected)
+            end
         end
-    else
-        print("⚠️ لا يوجد قاتل!")
     end
 end)
 
 -- زر جمع العملات
-local collectBtn = createButton("💰 جمع العملات", 334, Color3.fromRGB(200, 150, 50), function()
-    autoCollectEnabled = not autoCollectEnabled
-    collectBtn.Text = "💰 جمع العملات " .. (autoCollectEnabled and "ON" or "OFF")
-    collectBtn.BackgroundColor3 = autoCollectEnabled and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(200, 150, 50)
+local collectBtn = createButton("💰 جمع العملات", 272, function()
+    collectEnabled = not collectEnabled
+    collectBtn.Text = "💰 جمع العملات " .. (collectEnabled and "ON" or "OFF")
+    collectBtn.BackgroundColor3 = collectEnabled and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(200, 50, 50)
 end)
 
 -- زر الهجوم التلقائي
-local attackBtn = createButton("⚔ هجوم تلقائي", 376, Color3.fromRGB(150, 50, 150), function()
+local attackBtn = createButton("⚔ هجوم تلقائي", 314, function()
     autoAttackEnabled = not autoAttackEnabled
     attackBtn.Text = "⚔ هجوم تلقائي " .. (autoAttackEnabled and "ON" or "OFF")
     attackBtn.BackgroundColor3 = autoAttackEnabled and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(150, 50, 150)
 end)
 
--- زر NoClip
-local noClipBtn = createButton("🚪 اختراق الجدران", 418, Color3.fromRGB(50, 100, 200), function()
-    noClipEnabled = not noClipEnabled
-    noClipBtn.Text = "🚪 اختراق الجدران " .. (noClipEnabled and "ON" or "OFF")
-    noClipBtn.BackgroundColor3 = noClipEnabled and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(50, 100, 200)
-    character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing, not noClipEnabled)
-end)
-
--- زر Anti AFK
-local antiAFKBtn = createButton("⏳ منع الانقطاع", 460, Color3.fromRGB(200, 150, 50), function()
-    antiAFKEnabled = not antiAFKEnabled
-    antiAFKBtn.Text = "⏳ منع الانقطاع " .. (antiAFKEnabled and "ON" or "OFF")
-    antiAFKBtn.BackgroundColor3 = antiAFKEnabled and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(200, 150, 50)
-    if antiAFKEnabled then
-        local vu = game:GetService("VirtualUser")
-        game:GetService("Players").LocalPlayer.Idled:Connect(function()
-            vu:CaptureController()
-            vu:ClickButton2(Vector2.new())
-        end)
-    end
-end)
-
--- الميزات الأخرى
-local aimbotBtn = createButton("🎯 Aimbot", 502, Color3.fromRGB(200, 50, 50), function()
+-- زر Aimbot
+local aimbotBtn = createButton("🎯 Aimbot", 356, function()
     aimbotEnabled = not aimbotEnabled
     aimbotBtn.Text = "🎯 Aimbot " .. (aimbotEnabled and "ON" or "OFF")
     aimbotBtn.BackgroundColor3 = aimbotEnabled and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(200, 50, 50)
 end)
 
-local espBtn = createButton("👁 ESP", 544, Color3.fromRGB(200, 50, 50), function()
+-- زر ESP
+local espBtn = createButton("👁 ESP", 398, function()
     espEnabled = not espEnabled
     espBtn.Text = "👁 ESP " .. (espEnabled and "ON" or "OFF")
     espBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(200, 50, 50)
@@ -258,7 +177,8 @@ local espBtn = createButton("👁 ESP", 544, Color3.fromRGB(200, 50, 50), functi
     end
 end)
 
-local flyBtn = createButton("✈ طيران (WASD)", 586, Color3.fromRGB(200, 50, 50), function()
+-- زر طيران
+local flyBtn = createButton("✈ طيران (WASD)", 440, function()
     flyEnabled = not flyEnabled
     flyBtn.Text = "✈ طيران " .. (flyEnabled and "ON" or "OFF")
     flyBtn.BackgroundColor3 = flyEnabled and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(200, 50, 50)
@@ -266,99 +186,69 @@ local flyBtn = createButton("✈ طيران (WASD)", 586, Color3.fromRGB(200, 50
         local bv = Instance.new("BodyVelocity")
         bv.MaxForce = Vector3.new(1, 1, 1) * 100000
         bv.Velocity = Vector3.new(0, 50, 0)
-        bv.Parent = character.HumanoidRootPart
-        character.Humanoid.PlatformStand = true
+        bv.Parent = hrp
+        humanoid.PlatformStand = true
         uis.InputBegan:Connect(function(input)
             if flyEnabled and input.UserInputType == Enum.UserInputType.Keyboard then
-                if input.KeyCode == Enum.KeyCode.W then bv.Velocity = character.HumanoidRootPart.CFrame.LookVector * 100 end
-                if input.KeyCode == Enum.KeyCode.S then bv.Velocity = -character.HumanoidRootPart.CFrame.LookVector * 100 end
-                if input.KeyCode == Enum.KeyCode.A then bv.Velocity = -character.HumanoidRootPart.CFrame.RightVector * 100 end
-                if input.KeyCode == Enum.KeyCode.D then bv.Velocity = character.HumanoidRootPart.CFrame.RightVector * 100 end
+                if input.KeyCode == Enum.KeyCode.W then bv.Velocity = hrp.CFrame.LookVector * 100 end
+                if input.KeyCode == Enum.KeyCode.S then bv.Velocity = -hrp.CFrame.LookVector * 100 end
+                if input.KeyCode == Enum.KeyCode.A then bv.Velocity = -hrp.CFrame.RightVector * 100 end
+                if input.KeyCode == Enum.KeyCode.D then bv.Velocity = hrp.CFrame.RightVector * 100 end
                 if input.KeyCode == Enum.KeyCode.Space then bv.Velocity = Vector3.new(0, 100, 0) end
                 if input.KeyCode == Enum.KeyCode.LeftShift then bv.Velocity = Vector3.new(0, -100, 0) end
             end
         end)
     else
-        character.Humanoid.PlatformStand = false
-        for _, v in pairs(character.HumanoidRootPart:GetChildren()) do
+        humanoid.PlatformStand = false
+        for _, v in pairs(hrp:GetChildren()) do
             if v:IsA("BodyVelocity") then v:Destroy() end
         end
     end
 end)
 
-local speedBtn = createButton("⚡ سرعة", 628, Color3.fromRGB(50, 200, 50), function()
+-- زر سرعة
+local speedBtn = createButton("⚡ سرعة", 482, function()
     speedEnabled = not speedEnabled
     speedBtn.Text = "⚡ سرعة " .. (speedEnabled and "ON" or "OFF")
     speedBtn.BackgroundColor3 = speedEnabled and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(200, 50, 50)
-    character.Humanoid.WalkSpeed = speedEnabled and 50 or 16
+    humanoid.WalkSpeed = speedEnabled and 50 or 16
 end)
 
-local jumpBtn = createButton("🦘 قفز", 670, Color3.fromRGB(50, 200, 50), function()
+-- زر قفز
+local jumpBtn = createButton("🦘 قفز", 524, function()
     jumpEnabled = not jumpEnabled
     jumpBtn.Text = "🦘 قفز " .. (jumpEnabled and "ON" or "OFF")
     jumpBtn.BackgroundColor3 = jumpEnabled and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(200, 50, 50)
 end)
 
--- ===== جمع العملات =====
-local function autoCollect()
-    if not autoCollectEnabled then return end
-    for _, v in pairs(ws:GetDescendants()) do
-        if v:IsA("Model") and v:FindFirstChild("Coin") then
-            local coin = v:FindFirstChild("Coin")
-            if coin:IsA("BasePart") then
-                character.HumanoidRootPart.CFrame = CFrame.new(coin.Position)
-                wait(0.05)
-            end
-        end
-        if v:IsA("Model") and v:FindFirstChild("Box") then
-            local box = v:FindFirstChild("Box")
-            if box:IsA("BasePart") then
-                character.HumanoidRootPart.CFrame = CFrame.new(box.Position)
-                wait(0.05)
-            end
-        end
-    end
-end
+-- زر NoClip
+local noClipBtn = createButton("🚪 اختراق الجدران", 566, function()
+    noClipEnabled = not noClipEnabled
+    noClipBtn.Text = "🚪 اختراق الجدران " .. (noClipEnabled and "ON" or "OFF")
+    noClipBtn.BackgroundColor3 = noClipEnabled and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(50, 100, 200)
+end)
 
 -- ===== كشف القاتل والشريف =====
 local function detectRoles()
-    local murderer = nil
-    local sheriff = nil
+    local murderer, sheriff = nil, nil
     for _, v in pairs(game.Players:GetPlayers()) do
         if v ~= player and v.Character then
-            if v.Character:FindFirstChild("Murderer") then
-                murderer = v
-            end
-            if v.Character:FindFirstChild("Sheriff") then
-                sheriff = v
-            end
+            if v.Character:FindFirstChild("Murderer") then murderer = v end
+            if v.Character:FindFirstChild("Sheriff") then sheriff = v end
         end
     end
     return murderer, sheriff
 end
 
--- ===== الهجوم التلقائي =====
-rs.RenderStepped:Connect(function()
-    if autoAttackEnabled and murdererDetected and murdererDetected.Character then
-        local tool = character:FindFirstChildOfClass("Tool")
-        if tool then
-            character.HumanoidRootPart.CFrame = CFrame.lookAt(character.HumanoidRootPart.Position, murdererDetected.Character.HumanoidRootPart.Position)
-            tool:Activate()
-            wait(0.1)
-            replicatedStorage:FindFirstChild("Attack"):FireServer(murdererDetected)
-        end
-    end
-end)
-
 -- ===== Aimbot =====
 rs.RenderStepped:Connect(function()
     if aimbotEnabled then
-        local target = murdererDetected or nil
+        local target = murdererDetected
         if not target then
             local closest = math.huge
             for _, v in pairs(game.Players:GetPlayers()) do
                 if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-                    local dist = (v.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude
+                    local dist = (v.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
                     if dist < closest then
                         closest = dist
                         target = v
@@ -367,7 +257,7 @@ rs.RenderStepped:Connect(function()
             end
         end
         if target and target.Character then
-            character.HumanoidRootPart.CFrame = CFrame.lookAt(character.HumanoidRootPart.Position, target.Character.HumanoidRootPart.Position)
+            hrp.CFrame = CFrame.lookAt(hrp.Position, target.Character.HumanoidRootPart.Position)
         end
     end
 end)
@@ -375,16 +265,57 @@ end)
 -- ===== Infinite Jump =====
 uis.JumpRequest:Connect(function()
     if jumpEnabled then
-        character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
     end
 end)
 
 -- ===== NoClip =====
 rs.Stepped:Connect(function()
     if noClipEnabled then
-        character.HumanoidRootPart.CanCollide = false
+        hrp.CanCollide = false
     else
-        character.HumanoidRootPart.CanCollide = true
+        hrp.CanCollide = true
+    end
+end)
+
+-- ===== جمع العملات =====
+spawn(function()
+    while true do
+        if collectEnabled then
+            for _, v in pairs(ws:GetDescendants()) do
+                if v:IsA("Model") and v:FindFirstChild("Coin") then
+                    local coin = v:FindFirstChild("Coin")
+                    if coin and coin:IsA("BasePart") then
+                        hrp.CFrame = CFrame.new(coin.Position)
+                        wait(0.05)
+                    end
+                end
+                if v:IsA("Model") and v:FindFirstChild("Box") then
+                    local box = v:FindFirstChild("Box")
+                    if box and box:IsA("BasePart") then
+                        hrp.CFrame = CFrame.new(box.Position)
+                        wait(0.05)
+                    end
+                end
+            end
+        end
+        wait(0.5)
+    end
+end)
+
+-- ===== الهجوم التلقائي =====
+rs.RenderStepped:Connect(function()
+    if autoAttackEnabled and murdererDetected and murdererDetected.Character then
+        local tool = character:FindFirstChildOfClass("Tool")
+        if tool then
+            hrp.CFrame = CFrame.lookAt(hrp.Position, murdererDetected.Character.HumanoidRootPart.Position)
+            tool:Activate()
+            wait(0.1)
+            local attackEvent = replicatedStorage:FindFirstChild("Attack")
+            if attackEvent then
+                attackEvent:FireServer(murdererDetected)
+            end
+        end
     end
 end)
 
@@ -393,35 +324,25 @@ rs.RenderStepped:Connect(function()
     local murderer, sheriff = detectRoles()
     murdererDetected = murderer
     sheriffDetected = sheriff
-    
     if murderer then
-        murdererLabel.Text = "🔪 القاتل: " .. murderer.Name .. " (ID: " .. murderer.UserId .. ")"
+        murdererLabel.Text = "🔪 القاتل: " .. murderer.Name
         murdererLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
     else
         murdererLabel.Text = "🔪 القاتل: لا يوجد"
         murdererLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
     end
-    
     if sheriff then
-        sheriffLabel.Text = "⭐ الشريف: " .. sheriff.Name .. " (ID: " .. sheriff.UserId .. ")"
+        sheriffLabel.Text = "⭐ الشريف: " .. sheriff.Name
         sheriffLabel.TextColor3 = Color3.fromRGB(0, 200, 255)
     else
         sheriffLabel.Text = "⭐ الشريف: لا يوجد"
         sheriffLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
     end
-    
-    idLabel.Text = "🆔 ID الخاص بك: " .. player.UserId
 end)
 
--- ===== تشغيل جمع العملات =====
-while true do
-    autoCollect()
-    wait(0.5)
-end
-
--- ===== إغلاق الواجهة =====
+-- ===== زر الإغلاق =====
 local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 35, 0, 35)
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
 closeBtn.Position = UDim2.new(0.92, 0, 0, 5)
 closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
