@@ -25,12 +25,6 @@ end
 local Notif = library:InitNotifications()
 library.rank = "developer"
 
--- ============================================
--- إشعار الترحيب مع رابط الديسكورد
--- ============================================
-Notif:Notify("BATO MM2 HUB Loaded!", 2, "success")
-Notif:Notify("Join Discord: https://discord.gg/M6KCGKDCM7", 4, "alert")
-
 local rt = {} -- Removable table
 rt.__index = rt
 rt.octree = Octree.new()
@@ -464,6 +458,16 @@ function rt.Disconnect (connection:RBXScriptConnection)
     end
 end
 
+function rt.FindPlayer(val : string) : (Player)
+    local match
+    for _, v : Player in pairs(rt.Players:GetChildren()) do
+        if string.match(v.Name:lower(), val:lower()) or string.match(v.DisplayName:lower(), val:lower()) then
+            match = v
+        end
+    end
+    return match
+end
+
 function rt:Map () : (Model | nil)
     for _, v in workspace:GetDescendants() do
         if v.Name == "Spawns" and v.Parent.Name ~= "Lobby" then
@@ -508,6 +512,31 @@ function rt:CheckIfPlayerWasInARound () : (boolean)
         return true
     end
     return false
+end
+
+function rt:GetAlivePlayers (): (table | nil)
+    local aliveplrs = setmetatable({}, {__mode = "v"})
+    local OldPos = self:Character():GetPivot()
+    local pos = CFrame.new(-121.995956, 134.462997, 46.4180717)
+    
+    if not rt:CheckIfGameInProgress() then return nil end
+    local isAlive = rt:CheckIfPlayerIsInARound()
+    if not isAlive then self:Character():PivotTo(pos) end
+
+    for _, v in pairs(rt.Players:GetPlayers()) do
+        local distance = (self:Character().PrimaryPart.Position - v.Character.PrimaryPart.Position).Magnitude
+        if isAlive then
+            if distance <= 500 then
+                table.insert(aliveplrs, v)
+            end
+        else
+            if distance > 500 then
+                table.insert(aliveplrs, v)
+            end
+        end
+    end
+    if not isAlive then self:Character():PivotTo(OldPos) end
+    return aliveplrs
 end
 
 function rt:GetRoles() : {sheriff: Player | nil, Murderer : Player | nil}
@@ -610,6 +639,40 @@ function rt:GetGun ()
 
     Notif:Notify("Successfully picked up the gun", 1, "success")
     Gun = nil
+end
+
+function rt.LoadRoleInfo (roles, MurdFolder : {}, SherFolder : {})
+    if roles.Murderer then
+        MurdFolder.MurdName:Text("Murderer Username: " .. roles.Murderer.Name)
+        MurdFolder.MurdKnife:Text("Murderer Knife: " .. (roles.Murderer:GetAttribute("EquippedKnife") or ""))
+        MurdFolder.MurdKnifeEffect:Text("Murderer Knife Effect: " .. (roles.Murderer:GetAttribute("EquippedEffect") or ""))
+        MurdFolder.MurdPerk:Text("Murderer Perk: " .. (roles.Murderer:GetAttribute("EquippedPerk") or ""))
+        MurdFolder.Murdlvl:Text("Murderer Lvl: " .. (roles.Murderer:GetAttribute("Level") or ""))
+        MurdFolder.MurdPres:Text("Murderer Prestige: " .. (roles.Murderer:GetAttribute("Prestige") or ""))
+        MurdFolder.MurdXP:Text("Murderer XP: " .. (roles.Murderer:GetAttribute("XP") or ""))
+    else
+        MurdFolder.MurdName:Text("Murderer Username: N/A")
+        MurdFolder.MurdKnife:Text("Murderer Knife: N/A")
+        MurdFolder.MurdKnifeEffect:Text("Murderer Knife Effect: N/A")
+        MurdFolder.MurdPerk:Text("Murderer Perk: N/A")
+        MurdFolder.Murdlvl:Text("Murderer Lvl: N/A")
+        MurdFolder.MurdPres:Text("Murderer Prestige: N/A")
+        MurdFolder.MurdXP:Text("Murderer XP: N/A")
+    end
+
+    if roles.sheriff then
+        SherFolder.SherName:Text("Sheriff Username: " .. roles.sheriff.Name)
+        SherFolder.SherGun:Text("Sheriff Gun: " .. (roles.sheriff:GetAttribute("EquippedGun") or ""))
+        SherFolder.Sherlvl:Text("Sheriff Lvl: " .. (roles.sheriff:GetAttribute("Level") or "N/A") or "")
+        SherFolder.SherPres:Text("Sheriff Prestige: " .. (roles.sheriff:GetAttribute("Prestige") or ""))
+        SherFolder.SherXP:Text("Sheriff XP: " .. (roles.sheriff:GetAttribute("XP") or ""))
+    else
+        SherFolder.SherName:Text("Sheriff Username: N/A")
+        SherFolder.SherGun:Text("Sheriff Gun: N/A")
+        SherFolder.Sherlvl:Text("Sheriff Lvl: N/A")
+        SherFolder.SherPres:Text("Sheriff Prestige: N/A")
+        SherFolder.SherXP:Text("Sheriff XP: N/A")
+    end
 end
 
 function rt:UpdateRoles()
