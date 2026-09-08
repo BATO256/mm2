@@ -1,0 +1,195 @@
+--!strict
+-- made by BATO
+-- جميع الحقوق محفوظة للمطور: BATO
+-- BATO Fly v3 - MM2 Hub
+
+local Octree
+local library
+local Iris
+
+-- ============================================
+-- نظام اختيار اللغة
+-- ============================================
+local Lang = {
+    English = {
+        HubTitle = "BATO MM2 HUB 🎄",
+        Tabs = {"Home 🏠", "Auto Farm ♻️", "Actions 🔨", "Misc ⚙️", "Credits 🎉"},
+        Sections = {
+            KeyBind = "KeyBind Section",
+            Movement = "Movement Section",
+            Destroy = "Destroy Section",
+            AutoFarmSettings = "Auto Farm Settings",
+            Actions = "Actions",
+            Misc = "Miscellaneous",
+            Credits = "Credits"
+        },
+        Labels = {
+            HideGui = "Hide Gui",
+            ResetSpeed = "Reset WalkSpeed",
+            IncreaseSpeed = "Increase WalkSpeed",
+            SpeedMax = "WalkSpeed is at max",
+            SpeedReset = "WalkSpeed is already at default",
+            SpeedIncreased = "Increased WalkSpeed to: ",
+            SpeedResetMsg = "Reset WalkSpeed to 16",
+            DestroyGui = "Destroy Gui",
+            DestroyLabel = "remove UI HUB and its CONNECTIONS",
+            Uninterrupted = "Uninterrupted Mode",
+            UninterruptedDesc = "this will kill you before you start autofarm",
+            ReturnPoint = "Set Return Point",
+            ReturnPointDesc = "this will return you to the point where you started the autofarm",
+            Radius = "Radius",
+            ToggleESP = "Toggle ESP",
+            ToggleESPDesc = "Show player ESP on screen",
+            ViewMurderer = "View Murderer",
+            UnViewMurderer = "Unview Murderer",
+            GetGun = "Get Gun",
+            GetGunDesc = "Teleport to the GunDrop",
+            FlingPlayer = "Fling Player",
+            FlingPlayerDesc = "Fling the selected player",
+            ServerHop = "Server Hop",
+            Rejoin = "Rejoin Server",
+            Waypoints = "Waypoints Manager",
+            AddWaypoint = "Add Waypoint",
+            RemoveWaypoint = "Remove Selected",
+            WaypointName = "waypoint name",
+            CreditsText = "Developed by BATO\nAll Rights Reserved\nBATO Fly v3 - MM2 Hub",
+            TeleportTo = "Teleport to Player",
+            DoubleClick = "Double click to Teleport"
+        },
+        Notifications = {
+            Cleaning = "Cleaning Connections...",
+            Memory = "Cleaning Memory...",
+            Removing = "Removing Instances...",
+            Success = "Success",
+            Error = "Error",
+            Alert = "Alert",
+            FullBag = "Full Bag",
+            NoGame = "No game in progress",
+            NoGun = "No Gun found",
+            GunFar = "Gun is too far away [Safe Gun Grab]",
+            GunFailed = "Failed to get the gun. Sorry Sheriff you had your chance 😔.",
+            GunSuccess = "Successfully picked up the gun",
+            NoMap = "Map must be loaded to use Autofarm",
+            NoRound = "You need to be in a round or have played a round to use the autofarm",
+            NoMurderer = "No Murderer found to satisfy: Round in Progress",
+            TargetSitting = "Target is sitting",
+            RandomError = "Random error",
+            NoServer = "Couldn't find a server",
+            ViewAlready = "alr in view",
+            ViewRemoved = "alr removed view",
+            UninterruptedOn = "Uninterrupted Mode: on",
+            UninterruptedOff = "Uninterrupted Mode: off",
+            ReturnOn = "Return point: on",
+            ReturnOff = "Return point: off",
+            ESPOn = "ESP: on",
+            ESPOff = "ESP: off"
+        }
+    },
+    Arabic = {
+        HubTitle = "هب BATO لـ MM2 🎄",
+        Tabs = {"الرئيسية 🏠", "الزراعة الآلية ♻️", "الإجراءات 🔨", "متنوع ⚙️", "المطورين 🎉"},
+        Sections = {
+            KeyBind = "قسم مفاتيح التحكم",
+            Movement = "قسم الحركة",
+            Destroy = "قسم الإزالة",
+            AutoFarmSettings = "إعدادات الزراعة الآلية",
+            Actions = "الإجراءات",
+            Misc = "متنوع",
+            Credits = "المطورين"
+        },
+        Labels = {
+            HideGui = "إخفاء الواجهة",
+            ResetSpeed = "إعادة ضبط السرعة",
+            IncreaseSpeed = "زيادة السرعة",
+            SpeedMax = "السرعة في أقصى حد",
+            SpeedReset = "السرعة مضبوطة مسبقاً",
+            SpeedIncreased = "تم زيادة السرعة إلى: ",
+            SpeedResetMsg = "تم إعادة ضبط السرعة إلى 16",
+            DestroyGui = "إزالة الواجهة",
+            DestroyLabel = "إزالة الهب وجميع اتصالاته",
+            Uninterrupted = "وضع عدم الانقطاع",
+            UninterruptedDesc = "سيقتلك قبل بدء الزراعة الآلية",
+            ReturnPoint = "تعيين نقطة العودة",
+            ReturnPointDesc = "سيعيدك إلى النقطة التي بدأت منها الزراعة",
+            Radius = "نصف القطر",
+            ToggleESP = "تفعيل ESP",
+            ToggleESPDesc = "إظهار مواقع اللاعبين على الشاشة",
+            ViewMurderer = "مشاهدة القاتل",
+            UnViewMurderer = "إلغاء مشاهدة القاتل",
+            GetGun = "الحصول على المسدس",
+            GetGunDesc = "الانتقال إلى موقع المسدس",
+            FlingPlayer = "دفع اللاعب",
+            FlingPlayerDesc = "دفع اللاعب المحدد",
+            ServerHop = "الانتقال إلى سيرفر آخر",
+            Rejoin = "إعادة الدخول إلى السيرفر",
+            Waypoints = "مدير النقاط",
+            AddWaypoint = "إضافة نقطة",
+            RemoveWaypoint = "إزالة النقطة المحددة",
+            WaypointName = "اسم النقطة",
+            CreditsText = "تم التطوير بواسطة BATO\nجميع الحقوق محفوظة\nBATO Fly v3 - هب MM2",
+            TeleportTo = "الانتقال إلى اللاعب",
+            DoubleClick = "انقر مرتين للانتقال"
+        },
+        Notifications = {
+            Cleaning = "تنظيف الاتصالات...",
+            Memory = "تنظيف الذاكرة...",
+            Removing = "إزالة العناصر...",
+            Success = "نجاح",
+            Error = "خطأ",
+            Alert = "تنبيه",
+            FullBag = "الحقيبة ممتلئة",
+            NoGame = "لا توجد مباراة قيد التقدم",
+            NoGun = "لم يتم العثور على مسدس",
+            GunFar = "المسدس بعيد جداً [الوضع الآمن]",
+            GunFailed = "فشل في الحصول على المسدس. آسف أيها الشريف، ضاعت فرصتك 😔.",
+            GunSuccess = "تم الحصول على المسدس بنجاح",
+            NoMap = "يجب تحميل الخريطة لاستخدام الزراعة الآلية",
+            NoRound = "يجب أن تكون في مباراة أو لعبت مباراة لاستخدام الزراعة الآلية",
+            NoMurderer = "لا يوجد قاتل لإرضاء: مباراة قيد التقدم",
+            TargetSitting = "الهدف جالس",
+            RandomError = "خطأ عشوائي",
+            NoServer = "لم يتم العثور على سيرفر",
+            ViewAlready = "المشاهدة مفعلة مسبقاً",
+            ViewRemoved = "تم إلغاء المشاهدة مسبقاً",
+            UninterruptedOn = "وضع عدم الانقطاع: مفعل",
+            UninterruptedOff = "وضع عدم الانقطاع: معطل",
+            ReturnOn = "نقطة العودة: مفعلة",
+            ReturnOff = "نقطة العودة: معطلة",
+            ESPOn = "ESP: مفعل",
+            ESPOff = "ESP: معطل"
+        }
+    }
+}
+
+-- ============================================
+-- اختيار اللغة (غيّر هنا إلى "English" أو "Arabic")
+-- ============================================
+local SelectedLang = "English" -- غيّر إلى "Arabic" للعربية
+
+local L = Lang[SelectedLang]
+if not L then
+    L = Lang.English -- القيمة الافتراضية
+end
+
+-- ============================================
+-- تحميل المكتبات
+-- ============================================
+if httpget then
+    Octree = loadstring(httpget("https://raw.githubusercontent.com/Sleitnick/rbxts-octo-tree/main/src/init.lua", true))()
+    library = loadstring(httpget("https://raw.githubusercontent.com/Zyn-ic/MM2-AutoFarm/refs/heads/main/UI-Library/XSX.lua", true))()
+    Iris = loadstring(httpget("https://raw.githubusercontent.com/x0581/Iris-Exploit-Bundle/2.0.4/bundle.lua"))().Init(game.CoreGui)
+else
+    game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Using Old Method", Text = "using discontinued 'game:HttpGet'", Duration = 4 })
+    Octree = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sleitnick/rbxts-octo-tree/main/src/init.lua", true))()
+    library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Zyn-ic/MM2-AutoFarm/refs/heads/main/UI-Library/XSX.lua", true))()
+    Iris = loadstring(game:HttpGet("https://raw.githubusercontent.com/x0581/Iris-Exploit-Bundle/2.0.4/bundle.lua"))().Init(game.CoreGui)
+end
+
+local Notif = library:InitNotifications()
+library.rank = "developer"
+
+-- ============================================
+-- باقي الكود كما هو (rt table, functions, etc.)
+-- ============================================
+-- [هنا باقي الكود الأصلي مع تعديل النصوص حسب L]
+-- سأضيف لك التعديلات النهائية في الرد التالي لأن السكربت طويل جداً
