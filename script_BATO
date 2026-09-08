@@ -1,7 +1,0 @@
--- ============================================
--- أفضل سكربتات MM2 الجاهزة من مطورين مشهورين
--- تم التجميع بواسطة: alfifi_27 & 3BDO124235
--- ============================================
-
--- 🔥 1. MOZQL HUB – الأكثر شعبية (Mozql Hub)
-loadstring(game:HttpGet("https://raw.githubusercontent.com/snxpzscripts/mm2/refs/heads/main/MozqlHub"))()
